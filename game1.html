@@ -35,6 +35,8 @@
         createjs.Touch.enable(stage)
         }
 
+
+
         // オブジェクトの作成
         var rect = new createjs.Shape();
         rect.graphics.beginFill("black").drawRect(0, 0, w, h);
@@ -46,9 +48,6 @@
         var object_a = new MoveObject();
         stage.addChild(object_a);
 
-        
-
-        
 
         // tick イベントを登録する
         createjs.Ticker.addEventListener("tick", handleTick);
@@ -64,13 +63,16 @@
             stage.update();
         }
 
+        //背景クリックイベント
         function handleRectClick(event) {
           move_point.transfar(stage.mouseX, stage.mouseY);
-          object_a.set_v = 1;
+          object_a.set_destination(stage.mouseX, stage.mouseY)
         }
  
     } //init()ここまで
 
+
+    //---------------- class ----------------//
     class MovePoint extends createjs.Shape {
       constructor() {
         super();
@@ -90,6 +92,7 @@
       constructor() {
         super();
         
+        this.speed = 2;
         this.vx = 0;
         this.vy = 0;
 
@@ -105,16 +108,17 @@
         this.on('tick', this.update, this);
       }
 
-      set set_v(vx){
-        this.vx = vx;
+      set_destination(dest_x, dest_y){
+        var angle = Math.atan2(dest_y-this.y, dest_x-this.x );
+        this.vx = this.speed * Math.cos(angle);
+        this.vy = this.speed * Math.sin(angle);
       }
-      get get_v(){
-        return this.vx;
-      }
+
+      
 
       update() {
         this.x += this.vx;
-        //this.y += vy;
+        this.y += this.vy;
       }
     }
 
