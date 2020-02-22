@@ -43,6 +43,9 @@
         var move_point = new MovePoint();
         stage.addChild(move_point);
 
+        var object_a = new MoveObject();
+        stage.addChild(object_a);
+
         
 
         
@@ -63,7 +66,7 @@
 
         function handleRectClick(event) {
           move_point.transfar(stage.mouseX, stage.mouseY);
-
+          object_a.set_v = 1;
         }
  
     } //init()ここまで
@@ -81,8 +84,38 @@
         this.x = _x;
         this.y = _y;
       }
+    }
 
+    class MoveObject extends createjs.Container {
+      constructor() {
+        super();
+        
+        this.vx = 0;
+        this.vy = 0;
 
+        var shape = new createjs.Shape();
+        shape.graphics.beginFill('white');
+        shape.graphics.drawCircle(0, 0, 30);
+        this.addChild(shape); // 表示リストに追加
+
+        // メンバーフィールドに保存
+        this.shape = shape;
+
+        // 更新イベントを定義
+        this.on('tick', this.update, this);
+      }
+
+      set set_v(vx){
+        this.vx = vx;
+      }
+      get get_v(){
+        return this.vx;
+      }
+
+      update() {
+        this.x += this.vx;
+        //this.y += vy;
+      }
     }
 
     
