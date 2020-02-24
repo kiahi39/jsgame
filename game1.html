@@ -13,6 +13,10 @@
         var stage = new createjs.Stage("myCanvas");
         var w, h
 
+        console.log("test.");
+        var collision_manager = new CollisionManager();
+        stage.addChild(collision_manager);
+
         // リサイズイベントを検知してリサイズ処理を実行
         window.addEventListener("resize", handleResize);
         handleResize(); // 起動時にもリサイズしておく
@@ -42,11 +46,18 @@
         rect.graphics.beginFill("black").drawRect(0, 0, w, h);
         stage.addChild(rect);
 
-        var move_point = new MovePoint();
+        var move_point = new MovePoint(30, 30);
         stage.addChild(move_point);
+
 
         var object_a = new MoveObject();
         stage.addChild(object_a);
+        collision_manager.addList(object_a);
+
+        var object_b = new MoveObject();
+        object_b.x = 100;
+        stage.addChild(object_b);
+        collision_manager.addList(object_b);
 
 
         // tick イベントを登録する
@@ -89,12 +100,15 @@
     }
 
     class MoveObject extends createjs.Container {
-      constructor() {
+      constructor(w=10, h=10) {
         super();
-        
+        this.w = 10;
+        this.h = 10;
         this.speed = 2;
         this.vx = 0;
         this.vy = 0;
+        this.dest_x = 0;
+        this.dest_y = 0;
 
         var shape = new createjs.Shape();
         shape.graphics.beginFill('white');
@@ -108,17 +122,74 @@
         this.on('tick', this.update, this);
       }
 
-      set_destination(dest_x, dest_y){
-        var angle = Math.atan2(dest_y-this.y, dest_x-this.x );
+      set_destination(_dest_x, _dest_y){
+        this.dest_x = _dest_x;
+        this.dest_y = _dest_y;
+        var angle = Math.atan2(this.dest_y-this.y, this.dest_x-this.x );
         this.vx = this.speed * Math.cos(angle);
         this.vy = this.speed * Math.sin(angle);
       }
 
-      
+      on_collision(){
+
+      }
 
       update() {
+
+        if( Func.check_close(this.x, this.y, this.dest_x, this.dest_y, 1.0) ){
+          this.vx = 0;
+          this.vy = 0;
+        }
+
         this.x += this.vx;
         this.y += this.vy;
+      }
+    }
+
+    class CollisionManager extends createjs.Container {
+      constructor(){
+        super();
+        this.object_list = [];
+
+        this.on('tick', this.update, this);
+      }
+
+      update(){
+        
+        for(let i=0; i<this.object_list.length; i++){
+          for(let j=i+1; j<this.object_list.length; j++){
+            console.log("check.", this.object_list[i].x, this.object_list[j].x);
+            if(Func.check_collision(this.object_list[i], this.object_list[j])){
+              console.log("ぶつかってます。");
+            }
+          }
+        }
+      }
+
+      addList(object){
+        this.object_list.push(object);
+      }
+
+    }
+
+
+    class Func {
+      static check_close(x1, y1, x2, y2, d){
+        if(x1 < x2+d && x1 > x2-d && y1 < y2+d && y1 > y2-d){
+          return true;
+        }else{
+          return false;
+        }
+      }
+      static check_collision(obj1, obj2){
+        console.log("Wは", obj1.x, obj1.y);
+        if(obj1.x+obj1.w/2 > obj2.x-obj2.w/2 && obj1.x-obj1.w/2 < obj2.x+obj2.w/2){
+          console.log("x col.");
+          if(obj1.y+obj1.h/2 > obj2.y-obj2.h/2 && obj1.y-obj1.h/2 < obj2.y+obj2.h/2){
+            return true;
+          }
+        }
+        return false;
       }
     }
 
