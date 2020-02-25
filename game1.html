@@ -137,7 +137,7 @@
         this.dest_y = _dest_y;
       }
       set_velocity_to_destination(){
-        let angle = Math.atan2(this.dest_y-this.y, this.dest_x-this.x );
+        let angle = Math.atan2( this.dest_y-(this.y+this.h/2), this.dest_x-(this.x+this.w/2) );
         this.vx = this.speed * Math.cos(angle);
         this.vy = this.speed * Math.sin(angle);
       }
@@ -147,10 +147,6 @@
       }
       slide_collision(c_obj){
         if(this.trigger == false){
-          // this.x = this.x - this.vx;
-          // this.y = this.y - this.vy;
-          // this.vx = 0;
-          // this.vy = 0;
           let this_center = new Vector2(this.x+this.w/2, this.y+this.h/2);
           let collision_center = new Vector2(c_obj.x+c_obj.w/2, c_obj.y+c_obj.h/2);
           let side = Func.which_side_point(this_center, collision_center);
@@ -173,7 +169,7 @@
           this.set_velocity_to_destination();
         }
 
-        if( Func.check_close(this.x, this.y, this.dest_x, this.dest_y, 5.0) ){
+        if( Func.check_close(this.x+this.w/2, this.y+this.h/2, this.dest_x, this.dest_y, this.speed) ){
           this.vx = 0;
           this.vy = 0;
         }
