@@ -10,11 +10,10 @@
 
     function init() {
         // ステージを作成
-        var stage = new createjs.Stage("myCanvas");
-        var w, h
+        let stage = new createjs.Stage("myCanvas");
+        let w, h
 
-        console.log("test.");
-        var collision_manager = new CollisionManager();
+        let collision_manager = new CollisionManager();
         stage.addChild(collision_manager);
 
         // リサイズイベントを検知してリサイズ処理を実行
@@ -42,22 +41,32 @@
 
 
         // オブジェクトの作成
-        var rect = new createjs.Shape();
+        let rect = new createjs.Shape();
         rect.graphics.beginFill("black").drawRect(0, 0, w, h);
         stage.addChild(rect);
 
-        var move_point = new MovePoint(30, 30);
+        let move_point = new MovePoint(30, 30);
         stage.addChild(move_point);
 
-
-        var object_a = new MoveObject();
+        let object_a = new MoveObject();
+        object_a.dest_control = true;
         stage.addChild(object_a);
         collision_manager.addList(object_a);
 
-        var object_b = new MoveObject();
+        let object_b = new MoveObject(80,80);
         object_b.x = 100;
+        object_b.y = 500;
         stage.addChild(object_b);
         collision_manager.addList(object_b);
+
+        let object_c = new MoveObject(100,100);
+        object_c.x = 500;
+        object_c.y = 400;
+        stage.addChild(object_c);
+        collision_manager.addList(object_c);
+
+        // let bmp = new createjs.Bitmap("block202002x4.png");
+        // stage.addChild(bmp);
 
 
         // tick イベントを登録する
@@ -68,10 +77,8 @@
         rect.addEventListener("click", handleRectClick);
 
         function handleTick(event) {
-            
-
-            // 画面を更新する
-            stage.update();
+          // 画面を更新する
+          stage.update();
         }
 
         //背景クリックイベント
@@ -100,19 +107,22 @@
     }
 
     class MoveObject extends createjs.Container {
-      constructor(w=10, h=10) {
+      constructor(w=30, h=30, dest_control=false, stc=false) {
         super();
-        this.w = 10;
-        this.h = 10;
-        this.speed = 2;
+        this.w = w;
+        this.h = h;
+        this.speed = 5;
         this.vx = 0;
         this.vy = 0;
+        this.dest_control = dest_control;
         this.dest_x = 0;
         this.dest_y = 0;
+        this.trigger = false; //当たり判定のみかどうか
+        this.static = stc; //静止オブジェクトかどうか
 
-        var shape = new createjs.Shape();
+        let shape = new createjs.Shape();
         shape.graphics.beginFill('white');
-        shape.graphics.drawCircle(0, 0, 30);
+        shape.graphics.drawRect(0, 0, w, h);
         this.addChild(shape); // 表示リストに追加
 
         // メンバーフィールドに保存
@@ -125,18 +135,45 @@
       set_destination(_dest_x, _dest_y){
         this.dest_x = _dest_x;
         this.dest_y = _dest_y;
-        var angle = Math.atan2(this.dest_y-this.y, this.dest_x-this.x );
+      }
+      set_velocity_to_destination(){
+        let angle = Math.atan2(this.dest_y-this.y, this.dest_x-this.x );
         this.vx = this.speed * Math.cos(angle);
         this.vy = this.speed * Math.sin(angle);
       }
 
-      on_collision(){
-
+      on_collision(c_obj){ //c_obj:衝突相手(Move_Object型)
+        
+      }
+      slide_collision(c_obj){
+        if(this.trigger == false){
+          // this.x = this.x - this.vx;
+          // this.y = this.y - this.vy;
+          // this.vx = 0;
+          // this.vy = 0;
+          let this_center = new Vector2(this.x+this.w/2, this.y+this.h/2);
+          let collision_center = new Vector2(c_obj.x+c_obj.w/2, c_obj.y+c_obj.h/2);
+          let side = Func.which_side_point(this_center, collision_center);
+          if(side == "right"){
+            this.x = c_obj.x + c_obj.w;
+          }else if(side == "left"){
+            this.x = c_obj.x - this.w;
+          }else if(side == "down"){
+            this.y = c_obj.y + c_obj.h;
+          }else if(side == "up"){
+            this.y = c_obj.y - this.h;
+          }else{
+            console.log("myError: which_side? -> no side.");
+          }
+        }
       }
 
       update() {
+        if(this.dest_control==true){
+          this.set_velocity_to_destination();
+        }
 
-        if( Func.check_close(this.x, this.y, this.dest_x, this.dest_y, 1.0) ){
+        if( Func.check_close(this.x, this.y, this.dest_x, this.dest_y, 5.0) ){
           this.vx = 0;
           this.vy = 0;
         }
@@ -158,9 +195,11 @@
         
         for(let i=0; i<this.object_list.length; i++){
           for(let j=i+1; j<this.object_list.length; j++){
-            console.log("check.", this.object_list[i].x, this.object_list[j].x);
             if(Func.check_collision(this.object_list[i], this.object_list[j])){
-              console.log("ぶつかってます。");
+              console.log("collision.");
+              this.object_list[i].slide_collision(this.object_list[j]);
+              this.object_list[i].on_collision(this.object_list[j]);
+              this.object_list[j].on_collision(this.object_list[i]);
             }
           }
         }
@@ -182,14 +221,47 @@
         }
       }
       static check_collision(obj1, obj2){
-        console.log("Wは", obj1.x, obj1.y);
-        if(obj1.x+obj1.w/2 > obj2.x-obj2.w/2 && obj1.x-obj1.w/2 < obj2.x+obj2.w/2){
-          console.log("x col.");
-          if(obj1.y+obj1.h/2 > obj2.y-obj2.h/2 && obj1.y-obj1.h/2 < obj2.y+obj2.h/2){
+        if(obj1.x+obj1.w > obj2.x && obj1.x < obj2.x+obj2.w){
+          if(obj1.y+obj1.h > obj2.y && obj1.y < obj2.y+obj2.h){
             return true;
           }
         }
         return false;
+      }
+      /**
+      * @fn
+      * 座標pが座標qのどちら側(上下左右)にあるか調べる
+      * @param p Vector2
+      * @param q Vector2
+      * @return string : right/left/up/down
+      */
+      static which_side_point(p, q){
+        let deltax = q.x-p.x;
+        let deltay = q.y-p.y;
+        if(Math.abs(deltax) >= Math.abs(deltay)){
+          if(deltax > 0){
+            return "left"
+          }else{
+            return "right"
+          }
+        }else{
+          if(deltay > 0){
+            return "up"
+          }else{
+            return "down"
+          }
+        }
+      }
+    }
+
+    class Vector2{
+      constructor(x, y){
+        this.x = x;
+        this.y = y;
+      }
+      static zero(){
+        zero = new Vector2(0.0, 0.0);
+        return zero;
       }
     }
 
