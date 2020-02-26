@@ -53,7 +53,7 @@
         stage.addChild(object_a);
         collision_manager.addList(object_a);
 
-        let object_b = new MoveObject(80,80);
+        let object_b = new MoveObject(200,80);
         object_b.x = 100;
         object_b.y = 500;
         stage.addChild(object_b);
@@ -147,9 +147,7 @@
       }
       slide_collision(c_obj){
         if(this.trigger == false){
-          let this_center = new Vector2(this.x+this.w/2, this.y+this.h/2);
-          let collision_center = new Vector2(c_obj.x+c_obj.w/2, c_obj.y+c_obj.h/2);
-          let side = Func.which_side_point(this_center, collision_center);
+          let side = Func.which_side_rect(this, c_obj);
           if(side == "right"){
             this.x = c_obj.x + c_obj.w;
           }else if(side == "left"){
@@ -247,6 +245,23 @@
             return "down"
           }
         }
+      }
+      static which_side_rect(a, b){ //* @param a, b : MoveObject(have .x .y .w .h)
+        let dict = {
+          left: a.x + a.w - (b.x),
+          right: b.x + b.w - (a.x),
+          up: a.y + a.h - (b.y),
+          down: b.y + b.h - (a.y)
+        }
+        let min = Infinity;
+        let ans = "null.";
+        for(let key in dict){
+          if(dict[key] >= 0 && dict[key] < min){
+            min = dict[key];
+            ans = key;
+          }
+        }
+        return ans;
       }
     }
 
