@@ -48,7 +48,21 @@
         let move_point = new MovePoint(30, 30);
         stage.addChild(move_point);
 
+        let data = {
+            images: ["img/CityWalkGirl_f1.png","img/CityWalkGirl_f2.png","img/CityWalkGirl_f3.png","img/CityWalkGirl_f4.png"],
+            frames: {width:256, height:384},
+            framerate: 4,
+            animations: {
+                stand:0,
+                walk:[0,1,2,3]
+            }
+        };
+        let ss = new createjs.SpriteSheet(data);
+        let sprite = new createjs.Sprite(ss);
+        
         let object_a = new MoveObject();
+        object_a.init_anime(sprite);
+
         object_a.dest_control = true;
         stage.addChild(object_a);
         collision_manager.addList(object_a);
@@ -70,21 +84,22 @@
 
 
         // tick イベントを登録する
-        createjs.Ticker.addEventListener("tick", handleTick);
+        
         createjs.Ticker.timingMode = createjs.Ticker.RAF;
+        createjs.Ticker.addEventListener("tick", handleTick);
+
+        function handleTick(event) {
+          // 画面を更新する
+          stage.update(event);
+        }
 
         // 各種マウスイベントを登録する
         rect.addEventListener("click", handleRectClick);
 
-        function handleTick(event) {
-          // 画面を更新する
-          stage.update();
-        }
-
         //背景クリックイベント
         function handleRectClick(event) {
           move_point.transfar(stage.mouseX, stage.mouseY);
-          object_a.set_destination(stage.mouseX, stage.mouseY)
+          object_a.set_destination(stage.mouseX, stage.mouseY);
         }
  
     } //init()ここまで
@@ -111,7 +126,7 @@
         super();
         this.w = w;
         this.h = h;
-        this.speed = 5;
+        this.speed = 3;
         this.vx = 0;
         this.vy = 0;
         this.dest_control = dest_control;
@@ -128,18 +143,28 @@
         // メンバーフィールドに保存
         this.shape = shape;
 
+        this.sprite = null;
+
         // 更新イベントを定義
         this.on('tick', this.update, this);
+      }
+
+      init_anime(sprite){
+        this.addChild(sprite);
+        this.sprite = sprite;
+        //this.sprite.gotoAndPlay("walk");
       }
 
       set_destination(_dest_x, _dest_y){
         this.dest_x = _dest_x;
         this.dest_y = _dest_y;
+        this.sprite.gotoAndPlay("walk");
       }
       set_velocity_to_destination(){
         let angle = Math.atan2( this.dest_y-(this.y+this.h/2), this.dest_x-(this.x+this.w/2) );
         this.vx = this.speed * Math.cos(angle);
         this.vy = this.speed * Math.sin(angle);
+        
       }
 
       on_collision(c_obj){ //c_obj:衝突相手(Move_Object型)
@@ -170,6 +195,7 @@
         if( Func.check_close(this.x+this.w/2, this.y+this.h/2, this.dest_x, this.dest_y, this.speed) ){
           this.vx = 0;
           this.vy = 0;
+          this.sprite.gotoAndPlay("stand");
         }
 
         this.x += this.vx;
