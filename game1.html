@@ -49,12 +49,23 @@
         stage.addChild(move_point);
 
         let data = {
-            images: ["img/CityWalkGirl_f1.png","img/CityWalkGirl_f2.png","img/CityWalkGirl_f3.png","img/CityWalkGirl_f4.png"],
-            frames: {width:256, height:384},
+            images: ["img/CityWalkGirl_walk_v2x2.png"],
+            frames: [
+                // x, y, width, height, imageIndex*, regX*, regY*
+                [0,     0, 256, 384],
+                [256,   0, 256, 384],
+                [256*2, 0, 256, 384],
+                [256*3, 0, 256, 384],
+                [256*4, 0, 256, 384]
+            ],
             framerate: 4,
             animations: {
                 stand:0,
-                walk:[0,1,2,3]
+                walk:{
+                    frames: [1,2,3,4],
+                    next: "walk",
+                    speed: 1
+                }
             }
         };
         let ss = new createjs.SpriteSheet(data);
@@ -85,7 +96,8 @@
 
         // tick イベントを登録する
         
-        createjs.Ticker.timingMode = createjs.Ticker.RAF;
+        //createjs.Ticker.timingMode = createjs.Ticker.RAF;
+        createjs.Ticker.framerate = 60;
         createjs.Ticker.addEventListener("tick", handleTick);
 
         function handleTick(event) {
@@ -104,8 +116,9 @@
  
     } //init()ここまで
 
-
-    //---------------- class ----------------//
+    //-------------------------- class --------------------------//
+    //-------------------------- class --------------------------//
+    //-------------------------- class --------------------------//
     class MovePoint extends createjs.Shape {
       constructor() {
         super();
@@ -152,7 +165,7 @@
       init_anime(sprite){
         this.addChild(sprite);
         this.sprite = sprite;
-        //this.sprite.gotoAndPlay("walk");
+        console.log(this.sprite);
       }
 
       set_destination(_dest_x, _dest_y){
@@ -164,7 +177,7 @@
         let angle = Math.atan2( this.dest_y-(this.y+this.h/2), this.dest_x-(this.x+this.w/2) );
         this.vx = this.speed * Math.cos(angle);
         this.vy = this.speed * Math.sin(angle);
-        
+        console.log(this.sprite.currentFrame, this.sprite.currentAnimationFrame);
       }
 
       on_collision(c_obj){ //c_obj:衝突相手(Move_Object型)
