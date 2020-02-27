@@ -5,6 +5,20 @@
   <!-- <link rel="stylesheet" href="css/base.css" /> -->
   <script src="https://code.createjs.com/1.0.0/createjs.min.js"></script>
   <script>
+
+    /**方針メモなど
+     *
+     * 衝突 slice_collisionの優先度 staticで判断/重さの比重 
+     * 座標ずれ col_rect方式からずらし表示(本来の.x.yをcol_rect.x.yにする)
+     * 
+     * 
+     * 
+     * 
+     * 
+     * 
+     * 
+     */
+
     // 読み込みが終わってから初期化
     window.addEventListener("load", init);
 
@@ -39,15 +53,19 @@
         }
 
 
-
-        // オブジェクトの作成
+        //-------------------------------------------
+        //-------------------------------------------
+        //---------オブジェクトの作成------------------
+        //-------------------------------------------
+        //-------------------------------------------
         let rect = new createjs.Shape();
-        rect.graphics.beginFill("black").drawRect(0, 0, w, h);
+        rect.graphics.beginFill("gray").drawRect(0, 0, w, h);
         stage.addChild(rect);
 
         let move_point = new MovePoint(30, 30);
         stage.addChild(move_point);
 
+        let object_a = new MoveObject(64,64);
         let data = {
             images: ["img/CityWalkGirl_walk_v2x2.png"],
             frames: [
@@ -70,10 +88,7 @@
         };
         let ss = new createjs.SpriteSheet(data);
         let sprite = new createjs.Sprite(ss);
-        
-        let object_a = new MoveObject();
-        object_a.init_anime(sprite);
-
+        object_a.init_anime(sprite, 48*2, 144*2);
         object_a.dest_control = true;
         stage.addChild(object_a);
         collision_manager.addList(object_a);
@@ -93,10 +108,15 @@
         // let bmp = new createjs.Bitmap("block202002x4.png");
         // stage.addChild(bmp);
 
+        //-------------------------------------------
+        //-------------------------------------------
+        //---------オブジェクト作成ここまで------------
+        //-------------------------------------------
+        //-------------------------------------------
 
         // tick イベントを登録する
         
-        //createjs.Ticker.timingMode = createjs.Ticker.RAF;
+        createjs.Ticker.timingMode = createjs.Ticker.RAF;
         createjs.Ticker.framerate = 60;
         createjs.Ticker.addEventListener("tick", handleTick);
 
@@ -139,7 +159,7 @@
         super();
         this.w = w;
         this.h = h;
-        this.speed = 3;
+        this.speed = 2.5;
         this.vx = 0;
         this.vy = 0;
         this.dest_control = dest_control;
@@ -147,6 +167,7 @@
         this.dest_y = 0;
         this.trigger = false; //当たり判定のみかどうか
         this.static = stc; //静止オブジェクトかどうか
+        this.col_rect = {x:0,y:0,w:w,h:h}; //実装はできたけど、spriteずらしで代替したので実質未使用
 
         let shape = new createjs.Shape();
         shape.graphics.beginFill('white');
@@ -162,10 +183,11 @@
         this.on('tick', this.update, this);
       }
 
-      init_anime(sprite){
+      init_anime(sprite, col_x, col_y){
+        sprite.x = -1 * col_x;
+        sprite.y = -1 * col_y;
         this.addChild(sprite);
         this.sprite = sprite;
-        console.log(this.sprite);
       }
 
       set_destination(_dest_x, _dest_y){
@@ -174,10 +196,12 @@
         this.sprite.gotoAndPlay("walk");
       }
       set_velocity_to_destination(){
-        let angle = Math.atan2( this.dest_y-(this.y+this.h/2), this.dest_x-(this.x+this.w/2) );
+        let angle = Math.atan2( 
+          this.dest_y-(this.y+this.col_rect.y+this.col_rect.h/2), 
+          this.dest_x-(this.x+this.col_rect.x+this.col_rect.w/2) 
+        );
         this.vx = this.speed * Math.cos(angle);
         this.vy = this.speed * Math.sin(angle);
-        console.log(this.sprite.currentFrame, this.sprite.currentAnimationFrame);
       }
 
       on_collision(c_obj){ //c_obj:衝突相手(Move_Object型)
@@ -185,15 +209,16 @@
       }
       slide_collision(c_obj){
         if(this.trigger == false){
-          let side = Func.which_side_rect(this, c_obj);
+          let col = Func.convert_col_rect(this);
+          let side = Func.which_side_rect(col, c_obj);
           if(side == "right"){
-            this.x = c_obj.x + c_obj.w;
+            this.x = c_obj.x + c_obj.w -(this.col_rect.x);
           }else if(side == "left"){
-            this.x = c_obj.x - this.w;
+            this.x = c_obj.x - col.w -(this.col_rect.x);
           }else if(side == "down"){
-            this.y = c_obj.y + c_obj.h;
+            this.y = c_obj.y + c_obj.h -(this.col_rect.y);
           }else if(side == "up"){
-            this.y = c_obj.y - this.h;
+            this.y = c_obj.y - col.h -(this.col_rect.y);
           }else{
             console.log("myError: which_side? -> no side.");
           }
@@ -205,7 +230,7 @@
           this.set_velocity_to_destination();
         }
 
-        if( Func.check_close(this.x+this.w/2, this.y+this.h/2, this.dest_x, this.dest_y, this.speed) ){
+        if( Func.check_close(this.x+this.col_rect.x+this.col_rect.w/2, this.y+this.col_rect.y+this.col_rect.h/2, this.dest_x, this.dest_y, this.speed) ){
           this.vx = 0;
           this.vy = 0;
           this.sprite.gotoAndPlay("stand");
@@ -228,9 +253,11 @@
         
         for(let i=0; i<this.object_list.length; i++){
           for(let j=i+1; j<this.object_list.length; j++){
-            if(Func.check_collision(this.object_list[i], this.object_list[j])){
+            let obj1_col = Func.convert_col_rect(this.object_list[i]);
+            let obj2_col = Func.convert_col_rect(this.object_list[j]);
+            if(Func.check_collision(obj1_col, obj2_col)){
               console.log("collision.");
-              this.object_list[i].slide_collision(this.object_list[j]);
+              this.object_list[i].slide_collision(obj2_col);
               this.object_list[i].on_collision(this.object_list[j]);
               this.object_list[j].on_collision(this.object_list[i]);
             }
@@ -260,6 +287,15 @@
           }
         }
         return false;
+      }
+      static convert_col_rect(obj){ /** @param obj have [.x .y .w .h .col_rect] */
+        let col = {
+          x: obj.x + obj.col_rect.x,
+          y: obj.y + obj.col_rect.y,
+          w: obj.col_rect.w,
+          h: obj.col_rect.h
+        }
+        return col
       }
       /**
       * @fn
