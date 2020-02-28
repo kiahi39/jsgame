@@ -27,9 +27,6 @@
         // ステージを作成
         let stage = new createjs.Stage("myCanvas");
 
-        let collision_manager = new CollisionManager();
-        stage.addChild(collision_manager);
-
         // リサイズイベントを検知してリサイズ処理を実行
         window.addEventListener("resize", handleResize);
         handleResize(); // 起動時にもリサイズしておく
@@ -67,6 +64,9 @@
         //---------オブジェクトの作成------------------
         //-------------------------------------------
         //-------------------------------------------
+        collision_manager = new CollisionManager();
+        stage.addChild(collision_manager);
+
         let rect = new createjs.Shape();
         rect.graphics.beginFill("gray").drawRect(0, 0, stage.canvas.width, stage.canvas.height);
         stage.addChild(rect);
@@ -147,17 +147,15 @@
     //-------------------------- class --------------------------//
     //-------------------------- class --------------------------//
     class GameStage extends createjs.Stage {
-      constructor() {
-        super();
-        
-        this.object_list = [];
+      constructor(canvas_name) {
+        super(canvas_name);
 
         this.on('tick', this.update, this);
       }
 
       update(){
         
-        collisionObserve();
+        this.collisionObserve();
         
       }
 
@@ -166,15 +164,17 @@
       }
 
       collisionObserve() {
-        for(let i=0; i<this.object_list.length; i++){
-          for(let j=i+1; j<this.object_list.length; j++){
-            let obj1_col = Func.convert_col_rect(this.object_list[i]);
-            let obj2_col = Func.convert_col_rect(this.object_list[j]);
-            if(Func.check_collision(obj1_col, obj2_col)){
-              console.log("collision.");
-              this.object_list[i].slide_collision(obj2_col);
-              this.object_list[i].on_collision(this.object_list[j]);
-              this.object_list[j].on_collision(this.object_list[i]);
+        for(let i=0; i<this.children.length; i++){
+          for(let j=i+1; j<this.children.length; j++){
+            if(typeof this.children[i].isMoveObject == Boolean && typeof this.children[j].isMoveObject){
+              let obj1_col = Func.convert_col_rect(this.children[i]);
+              let obj2_col = Func.convert_col_rect(this.children[j]);
+              if(Func.check_collision(obj1_col, obj2_col)){
+                console.log("collision.");
+                this.children[i].slide_collision(obj2_col);
+                this.children[i].on_collision(this.children[j]);
+                this.children[j].on_collision(this.children[i]);
+              }
             }
           }
         }
@@ -202,6 +202,7 @@
         super();
         this.w = w;
         this.h = h;
+        this.isMoveObject = true;
         this.speed = 3.0;
         this.vx = 0;
         this.vy = 0;
@@ -341,7 +342,7 @@
             let obj1_col = Func.convert_col_rect(this.object_list[i]);
             let obj2_col = Func.convert_col_rect(this.object_list[j]);
             if(Func.check_collision(obj1_col, obj2_col)){
-              console.log("collision.");
+              //console.log("collision.");
               this.object_list[i].slide_collision(obj2_col);
               this.object_list[i].on_collision(this.object_list[j]);
               this.object_list[j].on_collision(this.object_list[i]);
