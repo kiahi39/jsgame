@@ -11,8 +11,8 @@
      * 衝突 slice_collisionの優先度 staticで判断/重さの比重 
      * 座標ずれ col_rect方式からずらし表示(本来の.x.yをcol_rect.x.yにする)
      * 
-     * 
-     * 
+     * アニメバグ 向き 音 奥行 ドット絵
+     * 初期distination
      * 
      * 
      * 
@@ -25,7 +25,6 @@
     function init() {
         // ステージを作成
         let stage = new createjs.Stage("myCanvas");
-        let w, h
 
         let collision_manager = new CollisionManager();
         stage.addChild(collision_manager);
@@ -36,14 +35,23 @@
 
         // リサイズ処理
         function handleResize(event) {
-            // 画面幅・高さを取得
-            w = window.innerWidth;
-            h = window.innerHeight;
-            // Canvas要素の大きさを画面幅・高さに合わせる
-            stage.canvas.width = w;
-            stage.canvas.height = h;
-            // 画面更新する
-            stage.update();
+
+          // Canvas要素の大きさを画面幅・高さに合わせる
+          stage.canvas.width = window.innerWidth;
+          stage.canvas.height = window.innerHeight;
+
+          // Retina対応
+          if (window.devicePixelRatio) {
+            const canvas = document.getElementById("myCanvas");
+            canvas.width *= devicePixelRatio;
+            canvas.height *= devicePixelRatio;
+            canvas.style.width = String(canvas.width / devicePixelRatio) + "px";
+            canvas.style.height = String(canvas.height / devicePixelRatio) + "px";
+            stage.scaleX = stage.scaleY = window.devicePixelRatio;
+          }
+
+          // 画面更新する
+          stage.update();
         }
 
         // タッチ操作をサポートしているブラウザーならば
@@ -59,13 +67,15 @@
         //-------------------------------------------
         //-------------------------------------------
         let rect = new createjs.Shape();
-        rect.graphics.beginFill("gray").drawRect(0, 0, w, h);
+        rect.graphics.beginFill("gray").drawRect(0, 0, stage.canvas.width, stage.canvas.height);
         stage.addChild(rect);
 
         let move_point = new MovePoint(30, 30);
+        move_point.x = stage.canvas.width/2;
+        move_point.y = stage.canvas.height/2;
         stage.addChild(move_point);
 
-        let object_a = new MoveObject(64,64);
+        let object_a = new MoveObject(256,384);
         let data = {
             images: ["img/CityWalkGirl_walk_v2x2.png"],
             frames: [
@@ -88,7 +98,8 @@
         };
         let ss = new createjs.SpriteSheet(data);
         let sprite = new createjs.Sprite(ss);
-        object_a.init_anime(sprite, 48*2, 144*2);
+        let col_rect = {x:-32, y:96, w:64, h:64};
+        object_a.init_sprite(sprite, col_rect);
         object_a.dest_control = true;
         stage.addChild(object_a);
         collision_manager.addList(object_a);
@@ -104,9 +115,6 @@
         object_c.y = 400;
         stage.addChild(object_c);
         collision_manager.addList(object_c);
-
-        // let bmp = new createjs.Bitmap("block202002x4.png");
-        // stage.addChild(bmp);
 
         //-------------------------------------------
         //-------------------------------------------
@@ -155,19 +163,20 @@
     }
 
     class MoveObject extends createjs.Container {
-      constructor(w=30, h=30, dest_control=false, stc=false) {
+      constructor(w=30, h=30) {
         super();
         this.w = w;
         this.h = h;
         this.speed = 2.5;
         this.vx = 0;
         this.vy = 0;
-        this.dest_control = dest_control;
+        this.dest_control = false;
         this.dest_x = 0;
         this.dest_y = 0;
         this.trigger = false; //当たり判定のみかどうか
-        this.static = stc; //静止オブジェクトかどうか
-        this.col_rect = {x:0,y:0,w:w,h:h}; //実装はできたけど、spriteずらしで代替したので実質未使用
+        this.stable = false; //静止オブジェクトかどうか
+        this.col_rect = {x:0,y:0,w:w,h:h}; //
+        this.direction = "right";
 
         let shape = new createjs.Shape();
         shape.graphics.beginFill('white');
@@ -177,23 +186,44 @@
         // メンバーフィールドに保存
         this.shape = shape;
 
-        this.sprite = null;
+        let data = {
+            images: [],
+            frames: {width: 0, height:0}
+        };
+        let ss = new createjs.SpriteSheet(data);
+        this.sprite = new createjs.Sprite(ss);
 
         // 更新イベントを定義
         this.on('tick', this.update, this);
       }
 
-      init_anime(sprite, col_x, col_y){
-        sprite.x = -1 * col_x;
-        sprite.y = -1 * col_y;
+      init_sprite(sprite, col_rect){
+        this.col_rect = col_rect;
+        sprite.regX = this.w/2;
+        sprite.regY = this.h/2;
         this.addChild(sprite);
         this.sprite = sprite;
+        this.change_shape(this.col_rect);
+      }
+
+      change_shape(rect){ //rect have .x .y .w .h
+        this.removeChild(this.shape);
+        this.shape = new createjs.Shape();
+        this.shape.graphics.beginFill('white');
+        this.shape.graphics.drawRect(rect.x, rect.y, rect.w, rect.h);
+        this.addChild(this.shape); // 表示リストに追加
+      }
+
+      go_anime(anime_name){
+        if(this.sprite.currentAnimation != anime_name){
+          this.sprite.gotoAndPlay(anime_name);
+        }
       }
 
       set_destination(_dest_x, _dest_y){
         this.dest_x = _dest_x;
         this.dest_y = _dest_y;
-        this.sprite.gotoAndPlay("walk");
+        this.go_anime("walk");
       }
       set_velocity_to_destination(){
         let angle = Math.atan2( 
@@ -225,6 +255,15 @@
         }
       }
 
+      change_direction(direction){
+        this.direction = direction;
+        if(this.direction == "right"){
+          this.sprite.scaleX = 1;
+        }else if(this.direction == "left"){
+          this.sprite.scaleX = -1;
+        }
+      }
+
       update() {
         if(this.dest_control==true){
           this.set_velocity_to_destination();
@@ -233,9 +272,14 @@
         if( Func.check_close(this.x+this.col_rect.x+this.col_rect.w/2, this.y+this.col_rect.y+this.col_rect.h/2, this.dest_x, this.dest_y, this.speed) ){
           this.vx = 0;
           this.vy = 0;
-          this.sprite.gotoAndPlay("stand");
+          this.go_anime("stand");
         }
 
+        if(this.vx > 0){
+          this.change_direction("right");
+        }else if(this.vx < 0){
+          this.change_direction("left");
+        }
         this.x += this.vx;
         this.y += this.vy;
       }
