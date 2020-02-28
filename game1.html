@@ -11,7 +11,7 @@
      * 衝突 slice_collisionの優先度 staticで判断/重さの比重 
      * 座標ずれ col_rect方式からずらし表示(本来の.x.yをcol_rect.x.yにする)
      * 
-     * アニメバグ 向き 音 奥行 ドット絵
+     * アニメバグ 向き 音 奥行 ドット絵 カメラ！
      * 初期distination
      * 
      * 
@@ -71,8 +71,6 @@
         stage.addChild(rect);
 
         let move_point = new MovePoint(30, 30);
-        move_point.x = stage.canvas.width/2;
-        move_point.y = stage.canvas.height/2;
         stage.addChild(move_point);
 
         let object_a = new MoveObject(256,384);
@@ -167,7 +165,7 @@
         super();
         this.w = w;
         this.h = h;
-        this.speed = 2.5;
+        this.speed = 2.0;
         this.vx = 0;
         this.vy = 0;
         this.dest_control = false;
@@ -203,7 +201,8 @@
         sprite.regY = this.h/2;
         this.addChild(sprite);
         this.sprite = sprite;
-        this.change_shape(this.col_rect);
+        //this.change_shape(this.col_rect); //当たり判定表示
+        this.removeChild(this.shape);   //当たり判定非表示
       }
 
       change_shape(rect){ //rect have .x .y .w .h
