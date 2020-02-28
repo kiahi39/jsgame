@@ -40,15 +40,15 @@
           stage.canvas.width = window.innerWidth;
           stage.canvas.height = window.innerHeight;
 
-          // Retina対応
-          if (window.devicePixelRatio) {
-            const canvas = document.getElementById("myCanvas");
-            canvas.width *= devicePixelRatio;
-            canvas.height *= devicePixelRatio;
-            canvas.style.width = String(canvas.width / devicePixelRatio) + "px";
-            canvas.style.height = String(canvas.height / devicePixelRatio) + "px";
-            stage.scaleX = stage.scaleY = window.devicePixelRatio;
-          }
+          // // Retina対応
+          // if (window.devicePixelRatio) {
+          //   const canvas = document.getElementById("myCanvas");
+          //   canvas.width *= devicePixelRatio;
+          //   canvas.height *= devicePixelRatio;
+          //   canvas.style.width = String(canvas.width / devicePixelRatio) + "px";
+          //   canvas.style.height = String(canvas.height / devicePixelRatio) + "px";
+          //   stage.scaleX = stage.scaleY = window.devicePixelRatio;
+          // }
 
           // 画面更新する
           stage.update();
