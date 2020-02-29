@@ -55,6 +55,11 @@ class MoveObject extends createjs.Container {
         this.y += this.vy;
     }
 
+    transfar(x, y) {
+        this.x = x;
+        this.y = y;
+    }
+
     init_sprite(sprite, col_rect) {
         this.col_rect = col_rect;
         sprite.regX = this.w / 2;

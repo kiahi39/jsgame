@@ -40,15 +40,16 @@ class GameStage extends createjs.Stage {
                 let obj1_col = Func.convert_col_rect(this.children[i]);
                 let obj2_col = Func.convert_col_rect(this.children[j]);
                 if (Func.check_collision(obj1_col, obj2_col)) {
-                    console.log("collision.");
+                    //console.log("collision.");
                     if (this.children[i].stable == false) {
                         this.children[i].slide_collision(obj2_col);
+                        this.children[i].on_collision(this.children[j]);
                     }
                     if (this.children[j].stable == false) {
                         this.children[j].slide_collision(obj1_col);
+                        this.children[j].on_collision(this.children[i]);
                     }
-                    this.children[i].on_collision(this.children[j]);
-                    this.children[j].on_collision(this.children[i]);
+
                 }
             }
         }

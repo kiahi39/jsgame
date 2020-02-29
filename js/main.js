@@ -81,15 +81,21 @@ function init() {
     game_stage.addChild(object_a);
     game_stage.cameraTarget = object_a;
 
-    let object_b = new MoveObject(200, 80);
-    object_b.x = 100;
-    object_b.y = 500;
-    game_stage.addChild(object_b);
+    let wall1 = new MoveObject(1000, 100);
+    wall1.transfar(-500, -500);
+    game_stage.addChild(wall1);
 
-    let object_c = new MoveObject(100, 100);
-    object_c.x = 500;
-    object_c.y = 400;
-    game_stage.addChild(object_c);
+    let wall2 = new MoveObject(1000, 100);
+    wall2.transfar(-500, 500);
+    game_stage.addChild(wall2);
+
+    let wall3 = new MoveObject(100, 1000);
+    wall3.transfar(-500, -500);
+    game_stage.addChild(wall3);
+
+    let wall4 = new MoveObject(300, 200);
+    wall4.transfar(100, 0);
+    game_stage.addChild(wall4);
 
     // tick イベントを登録する
 
