@@ -102,6 +102,8 @@
         let col_rect = {x:-32, y:96, w:64, h:64};
         object_a.init_sprite(sprite, col_rect);
         object_a.dest_control = true;
+        object_a.layer = -10;
+        object_a.stable = false;
         stage.addChild(object_a);
 
         let object_b = new MoveObject(200,80);
@@ -155,29 +157,40 @@
       everyFrame(){
         
         this.collisionObserve();
+        this.sortChildren(this.layerSortFunction);
         
-      }
-
-      addChild(obj){
-        super.addChild(obj);
-        console.log(this.children);
       }
 
       collisionObserve() {
         for(let i=0; i<this.children.length; i++){
+          if(this.children[i].isMoveObject != true){
+            continue;
+          }
           for(let j=i+1; j<this.children.length; j++){
-            if(this.children[i].isMoveObject == true && this.children[j].isMoveObject == true){
-              let obj1_col = Func.convert_col_rect(this.children[i]);
-              let obj2_col = Func.convert_col_rect(this.children[j]);
-              if(Func.check_collision(obj1_col, obj2_col)){
-                console.log("collision.");
+            if(this.children[j].isMoveObject != true){
+              continue;
+            }
+            let obj1_col = Func.convert_col_rect(this.children[i]);
+            let obj2_col = Func.convert_col_rect(this.children[j]);
+            if(Func.check_collision(obj1_col, obj2_col)){
+              console.log("collision.");
+              if(this.children[i].stable==false){
                 this.children[i].slide_collision(obj2_col);
-                this.children[i].on_collision(this.children[j]);
-                this.children[j].on_collision(this.children[i]);
               }
+              if(this.children[j].stable==false){
+                this.children[j].slide_collision(obj1_col);
+              } 
+              this.children[i].on_collision(this.children[j]);
+              this.children[j].on_collision(this.children[i]);
             }
           }
         }
+      }
+
+      layerSortFunction(obj1, obj2, options) {
+          if (obj1.layer < obj2.layer) { return 1; }
+          if (obj1.layer > obj2.layer) { return -1; }
+          return 0;
       }
 
     }
@@ -210,7 +223,7 @@
         this.dest_x = 0;
         this.dest_y = 0;
         this.trigger = false; //当たり判定のみかどうか
-        this.stable = false; //静止オブジェクトかどうか
+        this.stable = true; //静止オブジェクトかどうか
         this.col_rect = {x:0,y:0,w:w,h:h}; //
         this.direction = "right";
         this.layer = 0;
