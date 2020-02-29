@@ -11,7 +11,9 @@
      * 衝突 slice_collisionの優先度 staticで判断/重さの比重 
      * 座標ずれ col_rect方式からずらし表示(本来の.x.yをcol_rect.x.yにする)
      * ライブラリとしての制作 (クラス設計 / 命名規則)
-     * 
+     * たしかにライブラリ制作はためになるが、開発を進めることが本来の目的。
+     * 守る：クラス設計 // 妥協：自分が分かればいい。他人は使いにくくても仕方ない。
+     *  
      * アニメバグ 向き 音 奥行 ドット絵 カメラ！
      * 初期distination
      * 保存 cookie セッション
@@ -25,7 +27,7 @@
 
     function init() {
         // ステージを作成
-        let stage = new createjs.Stage("myCanvas");
+        let stage = new GameStage("myCanvas");
 
         // リサイズイベントを検知してリサイズ処理を実行
         window.addEventListener("resize", handleResize);
@@ -101,19 +103,16 @@
         object_a.init_sprite(sprite, col_rect);
         object_a.dest_control = true;
         stage.addChild(object_a);
-        collision_manager.addList(object_a);
 
         let object_b = new MoveObject(200,80);
         object_b.x = 100;
         object_b.y = 500;
         stage.addChild(object_b);
-        collision_manager.addList(object_b);
 
         let object_c = new MoveObject(100,100);
         object_c.x = 500;
         object_c.y = 400;
         stage.addChild(object_c);
-        collision_manager.addList(object_c);
 
         //-------------------------------------------
         //-------------------------------------------
@@ -150,23 +149,24 @@
       constructor(canvas_name) {
         super(canvas_name);
 
-        this.on('tick', this.update, this);
+        this.on('tick', this.everyFrame, this);
       }
-
-      update(){
+  
+      everyFrame(){
         
         this.collisionObserve();
         
       }
 
-      addList(object){
-        this.object_list.push(object);
+      addChild(obj){
+        super.addChild(obj);
+        console.log(this.children);
       }
 
       collisionObserve() {
         for(let i=0; i<this.children.length; i++){
           for(let j=i+1; j<this.children.length; j++){
-            if(typeof this.children[i].isMoveObject == Boolean && typeof this.children[j].isMoveObject){
+            if(this.children[i].isMoveObject == true && this.children[j].isMoveObject == true){
               let obj1_col = Func.convert_col_rect(this.children[i]);
               let obj2_col = Func.convert_col_rect(this.children[j]);
               if(Func.check_collision(obj1_col, obj2_col)){
@@ -331,12 +331,18 @@
       constructor(){
         super();
         this.object_list = [];
-
         this.on('tick', this.update, this);
       }
 
       update(){
-        
+        this.collisionObserve();        
+      }
+
+      addList(object){
+        this.object_list.push(object);
+      }
+
+      collisionObserve() {
         for(let i=0; i<this.object_list.length; i++){
           for(let j=i+1; j<this.object_list.length; j++){
             let obj1_col = Func.convert_col_rect(this.object_list[i]);
@@ -349,10 +355,6 @@
             }
           }
         }
-      }
-
-      addList(object){
-        this.object_list.push(object);
       }
 
     }
