@@ -35,8 +35,12 @@ class GameStage extends createjs.Stage {
     }
 
     ySortFunction(obj1, obj2, options) {
-        if (obj1.y > obj2.y) { return 1; }
-        if (obj1.y < obj2.y) { return -1; }
+        let xy1 = obj1.collisionCenter;
+        let xy2 = obj2.collisionCenter;
+        if (xy1 && xy2) {
+            if (xy1.y > xy2.y) { return 1; }
+            if (xy1.y < xy2.y) { return -1; }
+        }
         return 0;
     }
 

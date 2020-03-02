@@ -15,6 +15,7 @@ class MoveObject extends createjs.Container {
         this.col_rect = { x: 0, y: 0, w: w, h: h }; //
         this.direction = "right";
         this.layer = 0;
+        this._collisionCenter = { x: 0, y: 0 };
 
         let shape = new createjs.Shape();
         shape.graphics.beginFill('white');
@@ -131,6 +132,15 @@ class MoveObject extends createjs.Container {
     change_layer(layer) {
         this.layer = layer;
     }
+
+    get collisionCenter() {
+        this._collisionCenter = {
+            x: this.x + this.col_rect.x + this.col_rect.w,
+            y: this.y + this.col_rect.y + this.col_rect.h
+        }
+        return this._collisionCenter;
+    }
+
 }
 
 //----------------------------------------------------------------

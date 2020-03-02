@@ -82,7 +82,6 @@ function init() {
     let col_rect = { x: -32, y: 96, w: 64, h: 64 };
     object_a.init_sprite(sprite, col_rect);
     object_a.dest_control = true;
-    object_a.layer = -10;
     object_a.stable = false;
     game_stage.addChild(object_a);
     game_stage.cameraTarget = object_a;
