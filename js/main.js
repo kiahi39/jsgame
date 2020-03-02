@@ -47,10 +47,11 @@ function init() {
     rect.graphics.beginFill("gray").drawRect(0, 0, stage.canvas.width, stage.canvas.height);
     stage.addChild(rect);
 
-    let game_stage = new GameStage("myCanvas");
-    // game_stage.scaleX *= 0.8;
-    // game_stage.scaleY *= 0.8;
+    let game_stage = new GameStage();
     stage.addChild(game_stage);
+
+    let collisionObserver = new CollisionObserver(game_stage);
+    stage.addChild(collisionObserver);
 
     let move_point = new MovePoint(30, 30);
     game_stage.addChild(move_point);
@@ -100,6 +101,8 @@ function init() {
 
     let wall4 = new MoveObject(300, 200);
     wall4.transfar(100, 0);
+    wall1
+    wall4.col_rect = { x: 0, y: 100, w: 300, h: 100 };
     game_stage.addChild(wall4);
 
     // tick イベントを登録する
@@ -133,14 +136,14 @@ function init() {
  * たしかにライブラリ制作はためになるが、開発を進めることが本来の目的。
  * 守る：クラス設計 // 妥協：自分が分かればいい。他人は使いにくくても仕方ない。
  *
- * アニメバグ 向き  レイヤー
+ * アニメバグ 向き  レイヤー カメラ！別ファイル化
  *
- * 音 奥行 ドット絵 カメラ！
+ * 優先　：　音 奥行 ドット絵 UI(テキストウィンドウ)
  * 初期distination
  * 保存 cookie セッション
  * 壁で停止 速度を成分ごとに消す
- * 別ファイル化
- * テキスト UI ウィンドウ
  * 画面サイズ 縦画面
+ * 軽量化
+ *
  *
  */
