@@ -14,13 +14,13 @@ function init() {
     function handleResize(event) {
 
         // Canvas要素の大きさを画面幅・高さに合わせる
-        // stage.canvas.width = window.innerWidth;
-        // stage.canvas.height = window.innerHeight;
+        stage.canvas.width = window.innerWidth;
+        stage.canvas.height = window.innerHeight;
 
-        stage.canvas.width = 480;
-        stage.canvas.height = 720;
+        // stage.canvas.width = 480;
+        // stage.canvas.height = 720;
 
-        Retina対応
+        //Retina対応
         if (window.devicePixelRatio) {
             const canvas = document.getElementById("myCanvas");
             canvas.width *= devicePixelRatio;
