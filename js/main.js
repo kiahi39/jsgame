@@ -14,17 +14,20 @@ function init() {
     function handleResize(event) {
 
         // Canvas要素の大きさを画面幅・高さに合わせる
-        stage.canvas.width = window.innerWidth;
-        stage.canvas.height = window.innerHeight;
+        // stage.canvas.width = window.innerWidth;
+        // stage.canvas.height = window.innerHeight;
 
-        // Retina対応
+        stage.canvas.width = 480;
+        stage.canvas.height = 720;
+
+        Retina対応
         if (window.devicePixelRatio) {
             const canvas = document.getElementById("myCanvas");
             canvas.width *= devicePixelRatio;
             canvas.height *= devicePixelRatio;
             canvas.style.width = String(canvas.width / devicePixelRatio) + "px";
             canvas.style.height = String(canvas.height / devicePixelRatio) + "px";
-            stage.scaleX = stage.scaleY = window.devicePixelRatio;
+            // stage.scaleX = stage.scaleY = window.devicePixelRatio;
         }
 
         // 画面更新する
@@ -45,6 +48,8 @@ function init() {
     stage.addChild(rect);
 
     let game_stage = new GameStage("myCanvas");
+    // game_stage.scaleX *= 0.8;
+    // game_stage.scaleY *= 0.8;
     stage.addChild(game_stage);
 
     let move_point = new MovePoint(30, 30);
