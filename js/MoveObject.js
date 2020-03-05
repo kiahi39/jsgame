@@ -17,6 +17,9 @@ class MoveObject extends createjs.Container {
         this.layer = 0;
         this._collisionCenter = { x: 0, y: 0 };
 
+        // this.regX = this.w/2;
+        // this.regY = this.h/2;
+
         let shape = new createjs.Shape();
         shape.graphics.beginFill('white');
         shape.graphics.drawRect(0, 0, w, h);
@@ -158,5 +161,23 @@ class MovePoint extends createjs.Shape {
     transfar(_x, _y) {
         this.x = _x;
         this.y = _y;
+    }
+}
+
+class TalkObject extends MoveObject {
+    constructor(w, h){
+        super(w, h);
+
+        this.uiManager = null;
+
+        this.on('click', this.onClick, this);
+    }
+
+    onClick(){
+        if(this.uiManager){
+            let pos1 = {x:this.x, y:this.y};
+            this.uiManager.startTalk(pos1);
+        }
+        console.log("clickevent");
     }
 }
