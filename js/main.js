@@ -100,9 +100,12 @@ function init() {
 
     let wall4 = new MoveObject(300, 200);
     wall4.transfar(100, 0);
-    wall1
     wall4.col_rect = { x: 0, y: 100, w: 300, h: 100 };
     game_stage.addChild(wall4);
+
+    let wall5 = new MoveObject(64, 64);
+    wall5.transfar(-100, 0);
+    game_stage.addChild(wall5);
 
     // tick イベントを登録する
 
@@ -116,12 +119,18 @@ function init() {
     }
 
     // 各種マウスイベントを登録する
+    wall5.addEventListener("click", testClick);
     rect.addEventListener("click", handleRectClick);
+
 
     //背景クリックイベント
     function handleRectClick(event) {
         move_point.transfar(game_stage.camera.x + stage.mouseX, game_stage.camera.y + stage.mouseY);
         object_a.set_destination(game_stage.camera.x + stage.mouseX, game_stage.camera.y + stage.mouseY);
+    }
+
+    function testClick(event) {
+        console.log("click");
     }
 
 } //init()ここまで
@@ -136,8 +145,10 @@ function init() {
  * 守る：クラス設計 // 妥協：自分が分かればいい。他人は使いにくくても仕方ない。
  *
  * アニメバグ 向き  レイヤー カメラ！別ファイル化
+ * 奥行
  *
- * 優先　：　音 奥行 ドット絵 UI(テキストウィンドウ)
+ * 優先　：　音 ドット絵 UI(テキストウィンドウ) 物陰
+ * 話しかける（タップするとターゲットアイコンが出て近づいていく、触れるとテキスト表示）
  * 初期distination
  * 保存 cookie セッション
  * 壁で停止 速度を成分ごとに消す

@@ -44,4 +44,13 @@ class GameStage extends createjs.Stage {
         return 0;
     }
 
+    // applyFilter() {
+    //     var blurFilter = new createjs.BlurFilter(5, 5, 1);
+    //     this.filters = [blurFilter];
+    //     var bounds = blurFilter.getBounds();
+    //     console.log(this.camera);
+
+    //     this.cache(-800, -800, 2 * 800, 2 * 800);
+    // }
+
 }
